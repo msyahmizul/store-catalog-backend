@@ -1,0 +1,5 @@
+dispatch:
+   - url: "[URL]"
+     service: default
+   - url: "[url]"
+     service: default

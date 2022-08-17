@@ -1,0 +1,1314 @@
+openapi: 3.0.0
+info:
+  version: 0.0.1
+  title: Freshnet Server Documentation
+  description: Explain how the project works, the server contains three main starting routes, "api", "page" and "resource".
+  
+servers:
+  - url: "http://{host}:{port}/{base}"
+    description: "Server"
+    variables:
+      host:
+        description: "hello"
+        enum:
+          - "localhost"
+          - "freshnet.app"
+        default: "freshnet.app"
+      port:
+        enum:
+          - "80"
+          - "8080"
+          - "8081"
+        default: "80"
+      base:
+        enum:
+          - "api"
+          - "page"
+          - "resource"
+        default: "api"
+    
+paths:
+  "/order/all":
+    get:
+      tags:
+        - API - Order
+      summary: List All Order
+      responses:
+        "200":
+          description: List Of Order to return
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+        "500":
+          description: Internal Server Error
+  /order:
+    post:
+      tags:
+        - API - Order
+      summary: Create New Order Object
+      requestBody:
+        description: Post Order Body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  example: New Laptop Order
+                customer_name:
+                  type: string
+                  example: John Doe
+                phone_number:
+                  type: string
+                  example: "999"
+      responses:
+        "200":
+          description: Success create new Order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+    put:
+      tags:
+        - API - Order
+      summary: Update Order Status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - status
+              properties:
+                id:
+                  type: string
+                  example: 60d4526eaf8fd847db00f9bc
+                status:
+                  type: number
+                  example: 0
+      responses:
+        "200":
+          description: Sucess Update Status
+        "400":
+          description: Bad request. Missing or invalid fields
+        "401":
+          description: Authorization information is missing or invalid.
+        5XX:
+          description: Internal Server Error
+  "/order/{order_id}":
+    delete:
+      tags:
+        - API - Order
+      summary: Delete Order
+      parameters:
+        - in: path
+          name: order_id
+          schema:
+            type: string
+          required: true
+          description: Order ID of order to delete
+          example: 60d4526eaf8fd847db00f9bc
+      responses:
+        "202":
+          description: Sucess Delete Status
+        "400":
+          description: Bad request. Missing or invalid ID Type
+        "401":
+          description: Authorization information is missing or invalid.
+        5XX:
+          description: Internal Server Error
+
+  /session/login:
+    post:
+      tags:
+        - API - Session
+      summary: Login User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: user
+                password:
+                  type: string
+                  example: password
+      responses:
+        "200":
+          description: Login Success, each login will get different token
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  content:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: JhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..ulNwNlWMxZw
+                      user:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            example: User
+                          userType:
+                            type: number
+                            example: 0
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid or incomplete field"
+        "401":
+          description: "Invalid Username and Password"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid Username and Password"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+  /session/currentUser:
+    post:
+      tags:
+        - API - Session
+      summary: Check Token and Get Current User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: JhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..ulNwNlWMxZw
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            example: User
+                          userType:
+                            type: number
+                            example: 0
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid Token or Bad Token"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid User ID or Expired Token"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+  /service/:
+    get:
+      tags:
+        - API - Service
+      responses:
+        "200":
+          description: Get all Services Data
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/ReplyData"
+                properties:
+                  content:
+                    $ref: "#/components/schemas/Service"
+        "500":
+          description: Internal Server Error
+    post:
+      tags:
+        - API - Service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                staffId:
+                  type: string
+                  example: JhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..ulNwNlWMxZw
+                customerId:
+                  type: string
+                  example: "JhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0 #or customer Obj"
+                customer:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: "Rory"
+                    phoneNum:
+                      type: string
+                      example: "999"
+                problemDesc:
+                  type: string
+                  example: "Computer On fire, accidentally put in micorwave"
+      responses:
+        "200":
+          description: Service Data
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: "#/components/schemas/ReplyData"
+                properties:
+                  content:
+                    allOf:
+                      - $ref: "#/components/schemas/Service"
+                    properties:
+                      events:
+                        type: array
+                        example: []
+        "400":
+          description: Client Data Error
+        "500":
+          description: Internal Server Error
+    put:
+      tags:
+        - API - Service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                serviceId:
+                  type: string
+                  example: 60d4526eaf8fd847db00f9bc
+                problemDesc:
+                  type: string
+                  example: "Computeer On Fire"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+          description: Updated Service Data
+        "400":
+          description: Client Data Error
+        "500":
+          description: Internal Server Error
+  /service/event:
+    post:
+      tags:
+        - API - Service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - serviceId
+                - statusDesc
+                - description
+              type: object
+              properties:
+                serviceId:
+                  type: string
+                  example: 60d4526eaf8fd847db00f9bc
+                statusDesc:
+                  type: string
+                  example: Resolved
+                description:
+                  type: string
+                  example: Change CPU Motherboard
+                price:
+                  type: number
+                  example: 12.12
+                extra:
+                  type: string
+                  example: "OK -12/12/12"
+      responses:
+        "200":
+          description: New Service Event Daya
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceEvent"
+        "400":
+          description: Client Data Error
+        "500":
+          description: Internal Server Error
+    delete:
+      tags:
+        - API - Service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                serviceId:
+                  type: string
+                  example: 60d4526eaf8fd847db00f9bc
+                eventId:
+                  type: string
+                  example: 60d4526eaf8fd847db00f9bc
+      responses:
+        "200":
+          description: Success Delete
+        "400":
+          description: Client Data Error
+        "500":
+          description: Internal Server Error
+
+  "/item/category/list":
+    get:
+      tags:
+        - API - Category
+      summary: "Get list of categories"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    items:
+                      $ref: "#/components/schemas/Category"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "internal server error"
+
+  "/item/list":
+    get:
+      tags:
+        - API - Product
+      summary: "Get categories along with products"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    items:
+                      allOf:
+                        - $ref: "#/components/schemas/Category"
+                        - properties:
+                            items:
+                              items:
+                                $ref: "#/components/schemas/Product"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "internal server error"
+  "/item/":
+    post:
+      tags:
+        - API - Product
+      summary: "Create a product"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: "JhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..ulNwNlWMxZw"
+                content:
+                  $ref: "#/components/schemas/Product"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    $ref: "#/components/schemas/Product"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "missing title"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "access denied"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "permission denied"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "internal server error"
+
+  "/item/id/{id}":
+    get:
+      tags:
+        - API - Product
+      summary: "Get product by id"
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: "Product id"
+          example: "60d4526eaf8fd847db00f9bc"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    $ref: "#/components/schemas/Product"
+        "500":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    example: "internal server error"
+
+    put:
+      tags:
+        - API - Product
+      summary: "Update a product"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: "JhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..ulNwNlWMxZw"
+                content:
+                  $ref: "#/components/schemas/Product"
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: "Product id"
+          example: "60d4526eaf8fd847db00f9bc"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    $ref: "#/components/schemas/Product"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "missing title"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "access denied"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "permission denied"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    example: "internal server error"
+    delete:
+      tags: 
+        - API - Product
+      summary: "Delete a product"
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: "Product id"
+          example: "60d4526eaf8fd847db00f9bc"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: "JhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..ulNwNlWMxZw"
+                id: 
+                  type: string
+                  example: "60d4526eaf8fd847db00f9bc"
+      
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    $ref: "#/components/schemas/Product"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "missing id"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "access denied"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "permission denied"
+        "404":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "no such product"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    example: "internal server error"
+  
+  "/brand":
+    get:
+      tags:
+        - API - Brand
+      summary: "Get list of brands"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    items:
+                      $ref: "#/components/schemas/Brand"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "internal server error"
+
+  "/brand/id/{id}":
+    get:
+      tags:
+        - API - Brand
+      summary: "Get brand by id"
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: "Brand id"
+          example: "60d4526eaf8fd847db00f9bc"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    $ref: "#/components/schemas/Brand"
+        "400":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "not found"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "internal server error"
+
+  "/spec/":
+    get:
+      tags:
+        - API - Specification
+      summary: "Get list of specification"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    items:
+                      $ref: "#/components/schemas/Specification"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "internal server error"
+
+  "/spec/id/{id}":
+    get:
+      tags:
+        - API - Specification
+      summary: "Get specification by id"
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: "Specification id"
+          example: "60d4526eaf8fd847db00f9bc"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    $ref: "#/components/schemas/Specification"
+        "400":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "not found"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "internal server error"
+
+  "/spec/key/{key}":
+    get:
+      tags:
+        - API - Specification
+      summary: "Get specification by key"
+      parameters:
+        - in: path
+          name: key
+          schema:
+            type: string
+          required: true
+          description: "Specification key"
+          example: "processor"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    $ref: "#/components/schemas/Specification"
+        "400":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "not found"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "internal server error"
+
+  "/ps2/disc/":
+    get:
+      tags:
+        - API - PS2 Disc
+      summary: "Get list of PS2 Disc"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          example: "D168"
+                        title:
+                          type: string
+                          example: "Shadow Hearts From The New World"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "internal server error"
+  "/ps2/disc/id/{id}":
+    get:
+      tags:
+        - API - PS2 Disc
+      summary: "Get PS2 Disc by ID"
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: "Ps2 Disc id"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "D168"
+                      title:
+                        type: string
+                        example: "Shadow Hearts From The New World"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "internal server error"
+  "/ps2/disc/code/{code}":
+    get:
+      tags:
+        - API - PS2 Disc
+      summary: "Get PS2 Disc by code"
+      parameters:
+        - in: path
+          name: code
+          schema:
+            type: string
+          required: true
+          description: "Ps2 Disc code"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "D168"
+                      title:
+                        type: string
+                        example: "Shadow Hearts From The New World"
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "internal server error"
+
+components:
+  schemas:
+    ReplyData:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: boolean
+          description: Status of current request
+        content:
+          type: object
+          description: API content
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Rory
+          description: Name of user
+        phoneNum:
+          type: string
+          description: Phone Number
+          example: +60197777777
+        # userType:
+        #   type: number
+        #   description: |
+        #     * `0` - Admin
+        #     * `1` - Staff
+        #     * `2` - Customer
+        #   enum: [0,1,2]
+    Service:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Service ID
+          example: 60d4526eaf8fd847db00f9bc
+        customerId:
+          $ref: "#/components/schemas/User"
+        staffId:
+          $ref: "#/components/schemas/User"
+        problemDesc:
+          type: string
+          description: Problem Description Info
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ServiceEvent"
+        totalCost:
+          type: number
+          description: Total Cost Object
+        createdAt:
+          type: string
+          description: Date Created of Event
+          example: "2021-07-06T15:18:46.025+00:00"
+          format: date
+        updatedAt:
+          type: string
+          description: Date Update of Event
+          example: "2021-07-06T15:18:46.025+00:00"
+          format: date
+    ServiceEvent:
+      type: object
+      description: Event For Service
+      properties:
+        _id:
+          type: string
+          description: Event ID
+          example: 60d4526eaf8fd847db00f9bc
+        statusDesc:
+          type: string
+          description: Status Descrption for event
+          example: Resolve
+        description:
+          type: string
+          description: Description of Event
+          example: Replace CMOS Battery
+        extra:
+          type: string
+          description: Extra info of Event
+          example: OK - 12/12/2021
+        price:
+          type: number
+          description: Price for Event
+          example: 12.12
+        createdAt:
+          type: string
+          description: Date Created of Event
+          example: "2021-07-06T15:18:46.025+00:00"
+          format: date
+        updatedAt:
+          type: string
+          description: Date Update of Event
+          example: "2021-07-06T15:18:46.025+00:00"
+          format: date
+
+    Brand:
+      type: object
+      required:
+        - _id
+        - title
+      properties:
+        _id:
+          type: string
+          description: Auto Generated ID
+          example: 60d4526eaf8fd847db00f9bc
+        title:
+          type: string
+          description: Brand Name
+          example: Acer
+    Order:
+      type: object
+      required:
+        - content
+        - id
+      properties:
+        id:
+          type: string
+          description: Auto Generated ID
+          example: 60d4526eaf8fd847db00f9bc
+        content:
+          type: string
+          description: Content description of Order
+          example: HP Omen Galaxy Laptop
+        createdAt:
+          type: string
+          format: date
+        status:
+          type: number
+          example: 0
+          enum:
+            - 0
+            - 1
+          description: |
+            * `0` - Pending Order Status
+            * `1` - Completed Order Status
+    Bundle:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          example: "Microsoft Office Home & Student 2019"
+          description: "Describe the object that comes with the item."
+    Price:
+      type: object
+      required:
+        - normal
+      properties:
+        normal:
+          type: string
+          example: "RM 234.56"
+        promotion:
+          type: string
+          example: "RM 123.45"
+        bundles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Bundle"
+
+    Specification:
+      type: object
+      properties:
+        _id:
+          $ref: "#/components/schemas/ObjectId"
+        key:
+          type: string
+          example: "processor"
+        title:
+          type: string
+          example: "Processor"
+        icon:
+          $ref: "#/components/schemas/Image"
+        color:
+          type: string
+          example: "#0277bd"
+
+    Image:
+      type: object
+      description: "An image object contains method and path"
+      required:
+        - method
+        - path
+      properties:
+        method:
+          type: string
+          example: "local"
+          description: "Can be 'local' or 'ink'"
+        path:
+          type: string
+          example: "./resource/image/img.png"
+          description: "If the method is 'local', the path will tell you point to local server, if the method is 'link', the path will tell you point to public network."
+    Category:
+      type: object
+      required:
+        - _id
+        - key
+        - title
+      properties:
+        _id:
+          type: string
+          example: "60d4526eaf8fd847db00f9bc"
+          description: "Auto generated ID."
+        key:
+          type: string
+          example: "laptop"
+        title:
+          type: string
+          example: "Laptop"
+        icon:
+          $ref: "#/components/schemas/Image"
+        background:
+          $ref: "#/components/schemas/Image"
+    Product:
+      type: object
+      required:
+        - _id
+        - title
+      properties:
+        _id:
+          $ref: "#/components/schemas/ObjectId"
+        brandId:
+          type: string
+          example: "60d4526eaf8fd847db00f9bc"
+        categoryId:
+          type: string
+          example: "60d4526eaf8fd847db00f9bc"
+        title:
+          type: string
+          example: "HP Pavillion"
+          description: "Title to be displayed."
+        image:
+          $ref: "#/components/schemas/Image"
+        specification:
+          type: object
+          example:
+            processor: "Intel Core i5"
+            ram: "4GB DDR4"
+            storage: "4GB DDR4"
+          description: "The properties name as specification key, content as value"
+        stock:
+          type: object
+          properties:
+            isAvailable:
+              type: boolean
+            isSecondHand:
+              type: boolean
+            prices:
+              type: array
+              items:
+                $ref: "#/components/schemas/Price"
+        bundles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Bundle"
+        gifts:
+          type: array
+          items:
+            type: string
+            example: ["Backpack", "Mouse"]
+    ObjectId:
+      type: string
+      description: "Auto Generated ID"
+      example: "60d4526eaf8fd847db00f9bc"
